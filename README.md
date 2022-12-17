@@ -7,7 +7,8 @@ Blender addon to parent objects to the nearest bone
 5. enjoy
 
 Keep in mind:
-it will parent the object based on its origin. It will guess better if the origin is on one extreme, the "head" from the bone's point of view
+it will parent the object based on its origin. It will guess better if the origin is on one extreme, the "head" from the bone's point of view. 
+
 I'm not a developer, just a Blender user with some limited python skills, please be kind, this may indeed have errors.
 
 CALL FOR HELP:
