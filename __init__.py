@@ -2,7 +2,7 @@ bl_info = {
     "name": "Parent to nearest bone",
     "author": "Pablo Gentile",
     "version": (0, 5),
-    "blender": (3, 00, 0),
+    "blender": (3, 0, 0),
     "location": "View3D > Object > Parent > Parent to nearest Bone",
     "description": "Parents object to the nearest bone",
     "warning": "",
