@@ -6,7 +6,7 @@ bl_info = {
     "location": "View3D > Object > Parent > Parent to nearest Bone",
     "description": "Parents object to the nearest bone",
     "warning": "",
-    "doc_url": "",
+    "doc_url": "https://github.com/g3ntile/parentToNearestBone#readme",
     "category": "Object",
 }
 
