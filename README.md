@@ -1,14 +1,16 @@
 # parentToNearestBone
 Blender addon to parent objects to the nearest bone
-1. download the addon using the green button and then download .zip
+0.8
+
+1. download the addon using the green button and then download .zip or go to the release section
 2. Install and activate the addon inside Blender 3+
 3. select one or more objects, and an Armature, with the Armature as active object
 4. Goto to Object->Parent->Parent to nearest Bone
 5. enjoy
 
-Keep in mind:
-* it will parent the object based on its origin. It will guess better if the origin is on one extreme, the "head" from the bone's point of view. 
-* If the object happens to be on a joint with 2 bones that share it's origin (head) like in a "Y" shape, for example, it may get parented to the wrong bone. The only criteria the addon takes is bone (head) proximity to the object origin. You may need to tweak and reparent those.
+Notes:
+* Now it will parent the object based on the bone's center, and the geometric center of each object. It's done this way to avoid some errors triggered by the former method (bone's head vs object origin)
+* Now there should be no problem with "Y" joints. Please report if you find one.
 
 I'm not a developer, just a Blender user with some limited python skills, please be kind, this may indeed have errors.
 
