@@ -12,6 +12,7 @@ Notes:
 * Now it will parent the object based on the bone's center, and the geometric center of each object. It's done this way to avoid some errors triggered by the former method (bone's head vs object origin)
 * Now there should be no problem with "Y" joints. Please report if you find one.
 * Keep in mind that each object will get parented to one (and only one) bone. This addon parents each discrete object to one discrete bone. Many objects may get parented to the same object, of course, but not the other way. This means that for example, if you have symmetrical arms in a robot, you shoud make each arm a different object. You can't have one object for both arms with a mirror modifier, because the addon will fail to parent that object and throw an error.
+* If you have objects with mirror modifiers, you an apply it (and separate objects) first manually, or using Walter Palladino's "Apply Mirror and Separate" addon: https://github.com/walterpalladino/applyMirrorAndSeparate
 
 I'm not a developer, just a Blender user with some limited python skills, please be kind, this may indeed have errors.
 
