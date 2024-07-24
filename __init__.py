@@ -19,10 +19,10 @@
 bl_info = {
     "name": "Parent to nearest bone",
     "author": "Pablo Gentile",
-    "version": (0, 8, 0),
-    "blender": (3, 0, 0),
+    "version": (1, 0, 0),
+    "blender": (4, 2, 0),
     "location": "View3D > Object > Parent > Parent to nearest Bone",
-    "description": "Parents object to the nearest bone",
+    "description": "Parents object(s) to the nearest bone(s)",
     "warning": "",
     "doc_url": "https://github.com/g3ntile/parentToNearestBone#readme",
     "category": "Object",
@@ -42,38 +42,47 @@ def loc2world(ob, vector):
     '''converts the vector from ob space to world space'''
     return ob.matrix_world @ vector
 
-# returns the closest bone in armature ar to the object ob
-def closestBone(ob, ar, use_center):    
+# returns the closest bone in armature ar to the object ob, excluding non-deforming bones
+def closestBone(ob, ar, use_center):
     if ar.type != 'ARMATURE':
-        print ('select an armature!')
-        
+        print ('Select an armature!')
+
     # to edit mode
-    bpy.ops.object.mode_set(mode='EDIT')    
-    
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # filter out non-deforming bones
+    bones = [bone for bone in ar.data.edit_bones if bone.use_deform]
+
+    if not bones:
+        print('No deforming bones found!')
+        bpy.ops.object.mode_set(mode='OBJECT')
+        return None
+
     # finds the minimum value from a list of tuples that store the distance and the bone itself
-    # and stores the resulting bone
     if use_center:
         # use the geometric center vs bone.center method
-        closest = min( [ (math.dist(getGeometryCenter(ob), loc2world(ar, bone.center)), bone) for bone in ar.data.edit_bones ])
+        dists = [math.dist(getGeometryCenter(ob), loc2world(ar, bone.center)) for bone in bones]
     else:
         # use the object origin vs bone head method
-        closest = min( [ (math.dist(ob.location, loc2world(ar, bone.head)), bone) for bone in ar.data.edit_bones ])
-    
-    #extract bone name
-    bone_name = closest[1].name
-    
+        dists = [math.dist(ob.location, loc2world(ar, bone.head)) for bone in bones]
+
+    # get the index corresponding to the minimum distance
+    closest_id = dists.index(min(dists))
+    # extract bone name stored at the resulting index
+    bone_name = bones[closest_id].name
+
     # back to object mode
     bpy.ops.object.mode_set(mode='OBJECT')
     return bone_name
     
-def getHeadPosition(ar,bone):
+def getHeadPosition(ar, bone):
     bpy.ops.object.mode_set(mode='EDIT')  
     head = ar.data.edit_bones[bone].head
     bpy.ops.object.mode_set(mode='OBJECT')
     
     return head 
 
-def getCenterPosition(ar,bone):
+def getCenterPosition(ar, bone):
     bpy.ops.object.mode_set(mode='EDIT')  
     center = ar.data.edit_bones[bone].center
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -96,7 +105,7 @@ def getGeometryCenter(ob):
     return (max+min)/2
 
 # parent to bone via OPS
-def parent2BoneKT(ob,arma,parent_bone):
+def parent2BoneKT(ob, arma, parent_bone):
     # The parenting is done using bpy.ops
     # because it's the only way I found for 
     # preserving the transform of the object
@@ -141,12 +150,10 @@ def oops(self, context):
     
 #########################
 
-##**##**
-
 def main(context, use_center):
     C = context
     # separate the armature and get only parentable objects
-    my_objects = [ob  for ob in C.selected_objects if ob.type != 'ARMATURE']
+    my_objects = [ob for ob in C.selected_objects if ob.type != 'ARMATURE']
 
     # set the armature
 
@@ -155,21 +162,21 @@ def main(context, use_center):
     if ar.type == 'ARMATURE':
 
         for ob in my_objects:
-            print( '–' * 80)
-            print (ob.name)
-            print( '.' * 80)        
+            print('-' * 80)
+            print(ob.name)
+            print('.' * 80)
             my_closest = closestBone(ob, ar, use_center)
-            parent2BoneKT(ob,ar,my_closest)
+            if my_closest:
+                parent2BoneKT(ob, ar, my_closest)
+            else:
+                print(f"No suitable bone found for object {ob.name}")
 
-    else :
+    else:
         bpy.context.window_manager.popup_menu(oops, title="Error", icon='ERROR')
-        
 
-
-##**##**
 
 class ParentToNearestBone(bpy.types.Operator):
-    """Parents all selected objects to the nearest Bone in Active Armature, comparing the Bone's head to each Object's origin"""
+    """Parents all selected objects to the nearest Bones in Active Armature, comparing the Bone's head to each Object's origin"""
     bl_idname = "object.parent_to_nearest_bone"
     bl_label = "Parent to nearest Bone"
 
@@ -186,7 +193,7 @@ def menu_func(self, context):
     self.layout.operator(ParentToNearestBone.bl_idname, text=ParentToNearestBone.bl_label)
 
 class ParentToNearestBoneCenters(bpy.types.Operator):
-    """Parents all selected objects to the nearest Bone in Active Armature, comparing the Bone's center to each Object's geometric center"""
+    """Parents all selected objects to the nearest Bones in Active Armature, comparing the Bone's center to each Object's geometric center"""
     bl_idname = "object.parent_to_nearest_bone_centers"
     bl_label = "Parent to nearest Bone"
 
@@ -204,11 +211,9 @@ def menu_func_center(self, context):
 
 # Register and add to the "object" menu (required to also use F3 search "Simple Object Operator" for quick access).
 # The old version of the operator is commented and not registered, just in case. 
-# Will be cleaned  up if everything goes well in 1.0
+# Will be cleaned up if everything goes well in 1.0
 
 def register():
-    # bpy.utils.register_class(ParentToNearestBone)
-    # bpy.types.VIEW3D_MT_object_parent.append(menu_func)
     bpy.utils.register_class(ParentToNearestBoneCenters)
     bpy.types.VIEW3D_MT_object_parent.append(menu_func_center)
 
@@ -216,10 +221,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(ParentToNearestBoneCenters)
     bpy.types.VIEW3D_MT_object_parent.remove(menu_func_center)
-    # bpy.utils.unregister_class(ParentToNearestBone)
-    # bpy.types.VIEW3D_MT_object_parent.remove(menu_func)
 
 
 if __name__ == "__main__":
     register()
-
